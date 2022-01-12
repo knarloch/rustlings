@@ -41,6 +41,16 @@ pub fn create_non_empty_list<T>(t: T) -> List<T> {
     List::Cons(t, Box::new(List::Nil))
 }
 
+struct CustomSmartPointer {
+    data: String,
+}
+
+impl Drop for CustomSmartPointer {
+    fn drop(&mut self) {
+        println!("Dropping CustomSmartPointer with data `{}`!", self.data);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -53,5 +63,17 @@ mod tests {
     #[test]
     fn test_create_non_empty_list() {
         assert_ne!(create_empty_list(), create_non_empty_list(1))
+    }
+
+    #[test]
+    fn drops() {
+        let mut c = CustomSmartPointer {
+            data: String::from("my stuff"),
+        };
+        let d = CustomSmartPointer {
+            data: String::from("other stuff"),
+        };
+        c = d;
+        println!("CustomSmartPointers created.");
     }
 }

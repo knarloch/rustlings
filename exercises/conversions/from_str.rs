@@ -3,15 +3,29 @@
 // on strings to generate an object of the implementor type.
 // You can read more about it at https://doc.rust-lang.org/std/str/trait.FromStr.html
 use std::error;
+use std::fmt;
 use std::str::FromStr;
+
+#[derive(Debug)]
+enum ParsePersonError {
+    NameNotString,
+    AgeNotUsize,
+    NotExactlyTwoFileds,
+}
+
+impl error::Error for ParsePersonError {}
+
+impl fmt::Display for ParsePersonError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
 
 #[derive(Debug)]
 struct Person {
     name: String,
     age: usize,
 }
-
-// I AM NOT DONE
 
 // Steps:
 // 1. If the length of the provided string is 0, an error should be returned
@@ -26,6 +40,22 @@ struct Person {
 impl FromStr for Person {
     type Err = Box<dyn error::Error>;
     fn from_str(s: &str) -> Result<Person, Self::Err> {
+        let texts: Vec<_> = s.split(",").collect();
+        match texts.len() {
+            2 => {
+                if texts[0].len() == 0 {
+                    return Err(Box::new(ParsePersonError::NameNotString));
+                }
+                match usize::from_str(texts[1]) {
+                    Ok(parsedAge) => Ok(Person {
+                        name: texts[0].into(),
+                        age: parsedAge,
+                    }),
+                    Err(E) => Err(Box::new(ParsePersonError::AgeNotUsize)),
+                }
+            }
+            _ => Err(Box::new(ParsePersonError::NotExactlyTwoFileds)),
+        }
     }
 }
 
